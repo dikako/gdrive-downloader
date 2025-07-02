@@ -1,0 +1,68 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'dikako.gdrivedownloader'
+version = '1.0.0'
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.apis:google-api-services-drive:v3-rev20250511-2.0.0'
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.37.1'
+    implementation 'com.google.http-client:google-http-client-gson:1.47.1'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            groupId = 'dikako.gdrivedownloader'
+            artifactId = 'gdrive-downloader'
+            version = '1.0.0'
+            pom {
+                name = 'Google Drive Downloader'
+                description = 'Java library for downloading Google Drive files using a service account.'
+                url = 'https://github.com/dikako/gdrive-downloader'
+
+                licenses {
+                    licenses {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'dikako'
+                        name = 'Fransiskus Andika Setiawan'
+                        email = 'dikakoko04@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/dikako/gdrive-downloader.git'
+                    developerConnection = 'scm:git:ssh://github.com:dikako/gdrive-downloader.git'
+                    url = 'https://github.com/dikako/gdrive-downloader'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'localRepo'
+            url = uri("${projectDir}/repo")
+        }
+    }
+}
