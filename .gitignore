@@ -43,6 +43,7 @@ bin/
 
 ### Debug file ###
 src/main/java/dikako/gdrivedownloader/Main.java
+app
 
 ### Config file ###
 service-account.json
