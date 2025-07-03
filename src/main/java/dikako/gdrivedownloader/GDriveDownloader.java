@@ -1,6 +1,7 @@
 package dikako.gdrivedownloader;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
@@ -43,10 +44,16 @@ public class GDriveDownloader {
         .fromStream(serviceAccountJson)
         .createScoped(List.of("https://www.googleapis.com/auth/drive.readonly"));
 
+    HttpRequestInitializer timeoutRequestInitializer = request -> {
+      new HttpCredentialsAdapter(credentials).initialize(request);
+      request.setConnectTimeout(5 * 60 * 1000); // 5 minutes
+      request.setReadTimeout(5 * 60 * 1000);    // 5 minutes
+    };
+
     this.driveService = new Drive.Builder(
         GoogleNetHttpTransport.newTrustedTransport(),
         JSON_FACTORY,
-        new HttpCredentialsAdapter(credentials)
+        timeoutRequestInitializer
     ).setApplicationName("GDriveDownloader").build();
   }
 
@@ -165,7 +172,7 @@ public class GDriveDownloader {
    * @return The name of the downloaded file.
    * @throws IOException If folder or file is not found.
    */
-  public String downloadFileByNameContainsInFolderPath(String folderPath, String partialFileName, Path outputPath) throws IOException {
+  public String downloadFileByNameContainsInFolderPath(String folderPath, String partialFileName, Path outputPath, boolean... ackAbuseFile) throws IOException {
     String[] parts = folderPath.split("/");
     if (parts.length < 2) {
       throw new IllegalArgumentException("Folder path must include shared drive and at least one folder (e.g., 'DriveName/Folder')");
@@ -200,7 +207,7 @@ public class GDriveDownloader {
         .findFirst()
         .map(file -> {
           try {
-            return downloadFileSmart(file.getId(), outputPath);
+            return downloadFileSmart(file.getId(), outputPath, ackAbuseFile);
           } catch (IOException e) {
             throw new RuntimeException("Failed to download file: " + file.getName(), e);
           }
@@ -219,7 +226,7 @@ public class GDriveDownloader {
    * @return The path of the downloaded file.
    * @throws IOException If an I/O error occurs.
    */
-  public String downloadFileByRegexInFolderPath(String folderPath, String regex, Path outputPath) throws IOException {
+  public String downloadFileByRegexInFolderPath(String folderPath, String regex, Path outputPath, boolean... ackAbuseFile) throws IOException {
     Pattern pattern = Pattern.compile(regex);
 
     // Extract drive name from path
@@ -260,8 +267,8 @@ public class GDriveDownloader {
       throw new FileNotFoundException("No file found matching regex: " + regex + " in folder path: " + folderPath);
     }
 
-    System.out.println("Downloaded file: " + matchedFile.get().getName() + "in progress...");
-    return downloadFileSmart(matchedFile.get().getId(), outputPath);
+    System.out.println("Downloaded file: " + matchedFile.get().getName() + " in progress...");
+    return downloadFileSmart(matchedFile.get().getId(), outputPath, ackAbuseFile);
   }
 
   /**
@@ -296,7 +303,7 @@ public class GDriveDownloader {
    * @return Name of the downloaded file
    * @throws IOException if download/export fails
    */
-  public String downloadFileSmart(String fileId, Path outputPath) throws IOException {
+  public String downloadFileSmart(String fileId, Path outputPath, boolean... ackAbuseFile) throws IOException {
     // Make sure output directory exists
     java.io.File outputDir = outputPath.toFile();
     if (!outputDir.exists()) {
@@ -315,7 +322,6 @@ public class GDriveDownloader {
 
     String fileName = fileMetadata.getName();
     String mimeType = fileMetadata.getMimeType();
-    long fileSize = fileMetadata.getSize() == null ? -1 : fileMetadata.getSize();
 
     java.io.File targetFile;
     InputStream inputStream = switch (mimeType) {
@@ -334,7 +340,10 @@ public class GDriveDownloader {
         yield driveService.files().export(fileId, "application/vnd.openxmlformats-officedocument.presentationml.presentation")
             .executeMediaAsInputStream();
       }
-      default -> driveService.files().get(fileId).executeMediaAsInputStream();
+      default -> driveService.files()
+          .get(fileId)
+          .setAcknowledgeAbuse(ackAbuseFile.length > 0 && ackAbuseFile[0])
+          .executeMediaAsInputStream();
     };
 
     targetFile = outputPath.resolve(fileName).toFile();

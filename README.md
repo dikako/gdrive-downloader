@@ -32,11 +32,7 @@ dependencies {
 ### Initialize the downloader
 
 ```java
-import dikako.gdrivedownloader.GDriveDownloader;
-
-try (InputStream credentialsStream = new FileInputStream("service-account.json")) {
-    GDriveDownloader downloader = new GDriveDownloader(credentialsStream);
-}
+GDriveDownloader downloader = new GDriveDownloader(new FileInputStream("service-account.json"));
 ```
 
 ### Download by File ID
@@ -73,6 +69,16 @@ downloader.downloadFileByNameContainsInFolderPath(
 );
 ```
 
+```java
+// For setAcknowledgeAbuse
+downloader.downloadFileByNameContainsInFolderPath(
+    "MySharedDrive/Reports/2024",
+    "summary",
+    Paths.get("downloads"),
+    true
+);
+```
+
 ### Download from Shared Drive folder (regex)
 
 ```java
@@ -80,6 +86,16 @@ downloader.downloadFileByRegexInFolderPath(
     "MySharedDrive/Exports",
     ".*\\.csv",
     Paths.get("downloads")
+);
+```
+
+```java
+// For setAcknowledgeAbuse
+downloader.downloadFileByRegexInFolderPath(
+    "MySharedDrive/Exports",
+    ".*\\.csv",
+    Paths.get("downloads"),
+    true
 );
 ```
 
