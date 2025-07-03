@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'io.github.dikako'
-version = '1.0.1'
+version = '1.0.2'
 
 java {
     withSourcesJar()
@@ -47,7 +47,7 @@ publishing {
                     developer {
                         id = 'dikako'
                         name = 'Fransiskus Andika Setiawan'
-                        email = 'you@example.com'
+                        email = 'dikakoko@icloud.com'
                     }
                 }
                 scm {
@@ -66,7 +66,7 @@ publishing {
 
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                password = project.findProperty("gpr.key") ?: System.getenv("PUBLISH_TOKEN")
             }
         }
     }
