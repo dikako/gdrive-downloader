@@ -3,8 +3,8 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'io.github.dikako'
-version = '1.0.3'
+group = 'com.github.dikako'
+version = '1.0.4'
 
 java {
     withSourcesJar()
