@@ -4,9 +4,14 @@ plugins {
 }
 
 group = 'com.github.dikako'
-version = '1.0.4'
+version = '1.0.5'
 
 java {
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
     withSourcesJar()
     withJavadocJar()
 }

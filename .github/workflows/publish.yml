@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkootu code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
           distribution: 'temurin'
+          java-version: '17'
 
       - name: Publish to Github Packages
         run: ./gradlew publish -Pgpr.user=${{ secrets.USERNAME }} -Pgpr.key=${{ secrets.PUBLISH_TOKEN }}
