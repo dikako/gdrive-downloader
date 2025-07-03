@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+/**
+ * Utility class for downloading files from Google Drive using a service account.
+ */
 public class GDriveDownloader {
   private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
   private final Drive driveService;
@@ -29,7 +32,11 @@ public class GDriveDownloader {
 
 
   /**
-   * Constructs the GDriveDownloader using a service account JSON credentials input stream.
+   * Constructs a GDriveDownloader instance using the provided service account credentials.
+   *
+   * @param serviceAccountJson InputStream of the service account JSON file.
+   * @throws IOException if there's an error reading the credentials.
+   * @throws GeneralSecurityException if there's a security error initializing the client.
    */
   public GDriveDownloader(InputStream serviceAccountJson) throws IOException, GeneralSecurityException {
     GoogleCredentials credentials = GoogleCredentials
@@ -44,11 +51,12 @@ public class GDriveDownloader {
   }
 
   /**
-   * Downloads a file from Google Drive to the target output directory.
+   * Downloads a file from Google Drive using its file ID.
    *
-   * @param fileId     Google Drive file ID
-   * @param outputPath Local directory to save the downloaded file
-   * @return The name of the downloaded file
+   * @param fileId ID of the file to download.
+   * @param outputPath Path to save the downloaded file.
+   * @return The path to the downloaded file as a string.
+   * @throws IOException if the file cannot be downloaded.
    */
   public String downloadFileById(String fileId, Path outputPath) throws IOException {
     File fileMetadata = driveService.files().get(fileId).setFields("name").execute();
@@ -66,11 +74,12 @@ public class GDriveDownloader {
   }
 
   /**
-   * Downloads a file from Google Drive using its name.
+   * Downloads a file by its exact name from Google Drive.
    *
-   * @param fileName   Name of the file in Google Drive
-   * @param outputPath Directory to save the downloaded file
-   * @return The downloaded file name
+   * @param fileName The exact file name to search for.
+   * @param outputPath The path where the file will be saved locally.
+   * @return The path of the downloaded file.
+   * @throws IOException If an error occurs during the download process.
    */
   public String downloadFileByName(String fileName, Path outputPath) throws IOException {
     String query = String.format("name='%s' and trashed=false", fileName);
@@ -91,11 +100,12 @@ public class GDriveDownloader {
   }
 
   /**
-   * Downloads a file from Google Drive by contains name.
+   * Downloads the first file that contains the given partial name from Google Drive.
    *
-   * @param partialName Name of the file in Google Drive
-   * @param outputPath  Directory to save the downloaded file
-   * @return The downloaded file name
+   * @param partialName Partial name to search for.
+   * @param outputPath The local path where the file will be saved.
+   * @return The path to the downloaded file.
+   * @throws IOException If an I/O error occurs during download.
    */
   public String downloadFileByNameContains(String partialName, Path outputPath) throws IOException {
     FileList result = driveService.files().list()
@@ -117,11 +127,12 @@ public class GDriveDownloader {
   }
 
   /**
-   * Downloads a file from Google Drive by regular expression.
+   * Downloads the first file that matches the given regex pattern from Google Drive.
    *
-   * @param regex Name of the file in Google Drive
-   * @param outputPath  Directory to save the downloaded file
-   * @return The downloaded file name
+   * @param regex Regular expression to match file names.
+   * @param outputPath The local path to save the downloaded file.
+   * @return The path to the downloaded file.
+   * @throws IOException If an I/O error occurs during download.
    */
   public String downloadFileByRegex(String regex, Path outputPath) throws IOException {
     Pattern pattern = Pattern.compile(regex);
@@ -160,7 +171,6 @@ public class GDriveDownloader {
       throw new IllegalArgumentException("Folder path must include shared drive and at least one folder (e.g., 'DriveName/Folder')");
     }
 
-    // Step 1: resolve drive and folder
     String driveName = parts[0];
     String driveId = findSharedDriveIdByName(driveName);
     if (driveId == null) {
@@ -172,7 +182,6 @@ public class GDriveDownloader {
       throw new FileNotFoundException("Folder path not found: " + folderPath);
     }
 
-    // Step 2: list files in that folder using correct driveId context
     String query = String.format("trashed = false and '%s' in parents", folderId);
 
     FileList fileList = driveService.files().list()
@@ -201,6 +210,15 @@ public class GDriveDownloader {
         ));
   }
 
+  /**
+   * Downloads the first file that matches the given regex within a specific folder.
+   *
+   * @param folderPath The path of the folder to search in.
+   * @param regex The regular expression to match file names.
+   * @param outputPath The local path where the file will be saved.
+   * @return The path of the downloaded file.
+   * @throws IOException If an I/O error occurs.
+   */
   public String downloadFileByRegexInFolderPath(String folderPath, String regex, Path outputPath) throws IOException {
     Pattern pattern = Pattern.compile(regex);
 

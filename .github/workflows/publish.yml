@@ -1,0 +1,28 @@
+name: Publish gdrive-dwonloader to Github Package
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers on tags like v1.0.0, v2.1.3, etc.
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkootu code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Publish to Github Packages
+        env:
+          GPR_USER: ${{ github.actor }}
+          GPR_KEY: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew publish
+          

@@ -3,8 +3,8 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'dikako.gdrivedownloader'
-version = '1.0.0'
+group = 'io.github.dikako'
+version = '1.0.1'
 
 java {
     withSourcesJar()
@@ -29,17 +29,17 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
 
-            groupId = 'dikako.gdrivedownloader'
+            groupId = project.group
             artifactId = 'gdrive-downloader'
-            version = '1.0.0'
-            pom {
-                name = 'Google Drive Downloader'
-                description = 'Java library for downloading Google Drive files using a service account.'
-                url = 'https://github.com/dikako/gdrive-downloader'
+            version = project.version
 
+            pom {
+                name = 'GDrive Downloader'
+                description = 'A CLI tool and Java Library for downloading files from Google Drive using a service account'
+                url = 'https://github.com/dikako/gdrive-downloader'
                 licenses {
-                    licenses {
-                        name = 'MIT License'
+                    license {
+                        name = 'The MIT License'
                         url = 'https://opensource.org/licenses/MIT'
                     }
                 }
@@ -47,7 +47,7 @@ publishing {
                     developer {
                         id = 'dikako'
                         name = 'Fransiskus Andika Setiawan'
-                        email = 'dikakoko04@gmail.com'
+                        email = 'you@example.com'
                     }
                 }
                 scm {
@@ -61,8 +61,13 @@ publishing {
 
     repositories {
         maven {
-            name = 'localRepo'
-            url = uri("${projectDir}/repo")
+            name = "GithubPackages"
+            url = uri("https://maven.pkg.github.com/dikako/gdrive-downloader")
+
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }

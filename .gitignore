@@ -47,3 +47,4 @@ app
 
 ### Config file ###
 service-account.json
+gradle.properties
