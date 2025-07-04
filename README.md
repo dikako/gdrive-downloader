@@ -17,7 +17,7 @@ Add the following to your `build.gradle`:
 
 ```groovy
 dependencies {
-    implementation 'io.github.dikako:gdrive-downloader:1.0.0'
+    implementation 'io.github.dikako:gdrive-downloader:1.0.6'
 }
 ```
 
