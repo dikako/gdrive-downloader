@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.github.dikako'
-version = '1.0.7'
+version = '1.0.9'
 
 java {
     java {
