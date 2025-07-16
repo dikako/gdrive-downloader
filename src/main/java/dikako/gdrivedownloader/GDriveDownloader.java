@@ -352,7 +352,7 @@ public class GDriveDownloader {
     targetFile = outputPath.resolve(fileName).toFile();
     try (BufferedInputStream bis = new BufferedInputStream(inputStream);
          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(targetFile))) {
-      byte[] buffer = new byte[8192]; // 8 KB buffer
+      byte[] buffer = new byte[4096]; // 8 KB buffer
       int bytesRead;
       while ((bytesRead = bis.read(buffer)) != -1) {
         bos.write(buffer, 0, bytesRead);
