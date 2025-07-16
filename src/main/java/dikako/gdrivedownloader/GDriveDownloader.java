@@ -10,10 +10,8 @@ import com.google.api.services.drive.model.FileList;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.SocketException;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -36,7 +34,7 @@ public class GDriveDownloader {
    * Constructs a GDriveDownloader instance using the provided service account credentials.
    *
    * @param serviceAccountJson InputStream of the service account JSON file.
-   * @throws IOException if there's an error reading the credentials.
+   * @throws IOException              if there's an error reading the credentials.
    * @throws GeneralSecurityException if there's a security error initializing the client.
    */
   public GDriveDownloader(InputStream serviceAccountJson) throws IOException, GeneralSecurityException {
@@ -60,7 +58,7 @@ public class GDriveDownloader {
   /**
    * Downloads a file from Google Drive using its file ID.
    *
-   * @param fileId ID of the file to download.
+   * @param fileId     ID of the file to download.
    * @param outputPath Path to save the downloaded file.
    * @return The path to the downloaded file as a string.
    * @throws IOException if the file cannot be downloaded.
@@ -83,7 +81,7 @@ public class GDriveDownloader {
   /**
    * Downloads a file by its exact name from Google Drive.
    *
-   * @param fileName The exact file name to search for.
+   * @param fileName   The exact file name to search for.
    * @param outputPath The path where the file will be saved locally.
    * @return The path of the downloaded file.
    * @throws IOException If an error occurs during the download process.
@@ -110,7 +108,7 @@ public class GDriveDownloader {
    * Downloads the first file that contains the given partial name from Google Drive.
    *
    * @param partialName Partial name to search for.
-   * @param outputPath The local path where the file will be saved.
+   * @param outputPath  The local path where the file will be saved.
    * @return The path to the downloaded file.
    * @throws IOException If an I/O error occurs during download.
    */
@@ -136,7 +134,7 @@ public class GDriveDownloader {
   /**
    * Downloads the first file that matches the given regex pattern from Google Drive.
    *
-   * @param regex Regular expression to match file names.
+   * @param regex      Regular expression to match file names.
    * @param outputPath The local path to save the downloaded file.
    * @return The path to the downloaded file.
    * @throws IOException If an I/O error occurs during download.
@@ -221,7 +219,7 @@ public class GDriveDownloader {
    * Downloads the first file that matches the given regex within a specific folder.
    *
    * @param folderPath The path of the folder to search in.
-   * @param regex The regular expression to match file names.
+   * @param regex      The regular expression to match file names.
    * @param outputPath The local path where the file will be saved.
    * @return The path of the downloaded file.
    * @throws IOException If an I/O error occurs.
@@ -347,8 +345,18 @@ public class GDriveDownloader {
     };
 
     targetFile = outputPath.resolve(fileName).toFile();
-    try (FileOutputStream outputStream = new FileOutputStream(targetFile)) {
-      inputStream.transferTo(outputStream);
+    try (BufferedInputStream bis = new BufferedInputStream(inputStream);
+         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(targetFile))) {
+      byte[] buffer = new byte[8192]; // 8 KB buffer
+      int bytesRead;
+      while ((bytesRead = bis.read(buffer)) != -1) {
+        bos.write(buffer, 0, bytesRead);
+      }
+
+      bos.flush(); // ensure everything is written
+    } catch (SocketException e) {
+      System.err.println("[Download Error] Connection reset during file download.");
+      throw new IOException("SocketException: Connection reset", e);
     }
 
     return fileName;
